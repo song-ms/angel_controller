@@ -8,7 +8,7 @@ from std_msgs.msg import String
 class MinimalPublisher(Node):
 
     def __init__(self):
-        super().__init__('minimal_publisher')
+        super().__init__('controller_version')
         self.publisher_ = self.create_publisher(Bool, '/topic/button/emr/bool', 10)
         self.publisher_liveness = self.create_publisher(String, '/controller_version', 10)
         timer_period = 5  # seconds
@@ -32,7 +32,7 @@ class MinimalPublisher(Node):
 
     def timer_callback_liveness(self):
         msg = String()
-        msg.data = "0.1.0"
+        msg.data = "0.1.1"
         self.publisher_liveness.publish(msg)
         self.get_logger().info('version: "%s"' % msg.data)
 
