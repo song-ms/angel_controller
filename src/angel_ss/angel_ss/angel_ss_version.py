@@ -3,36 +3,29 @@ import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Bool
 from std_msgs.msg import String
-
+import pymongo
+import json
+MONGO_HOSTNAME = '192.168.0.243'
+MONGO_PORT = '27017'
+MONGO_DB = 'wasp'
 
 class MinimalPublisher(Node):
 
     def __init__(self):
-        super().__init__('minimal_publisher')
-        self.publisher_ = self.create_publisher(Bool, '/topic/button/emr/bool', 10)
+        super().__init__('controller_version_node')
         self.publisher_liveness = self.create_publisher(String, '/controller_version', 10)
-        timer_period = 5  # seconds
         timer_period2 = 2  # seconds
-        self.timer = self.create_timer(timer_period, self.timer_callback)
+        # self.timer = self.create_timer(timer_period, self.timer_callback)
+        self.client = pymongo.MongoClient('mongodb://'+MONGO_HOSTNAME+':'+MONGO_PORT)
         self.timer_liveness = self.create_timer(timer_period2, self.timer_callback_liveness)
         self.i = 0
 
-    def timer_callback(self):
-
-        msg = Bool()
-        if self.i%2 == 0 :
-            msg.data = True
-            self.publisher_.publish(msg)
-            self.get_logger().info('Publishing: "%s"' % msg.data)
-        else : 
-            msg.data = False
-            self.publisher_.publish(msg)
-            self.get_logger().info('Publishing: "%s"' % msg.data)
-        self.i += 1
-
     def timer_callback_liveness(self):
         msg = String()
-        msg.data = "0.1.0"
+        msg.data = "0.1"
+        db = self.client.wasp.controllerver
+        version_db = {"id" : "M30", "version" : msg.data}
+        db.insert_one(version_db)
         self.publisher_liveness.publish(msg)
         self.get_logger().info('version: "%s"' % msg.data)
 
